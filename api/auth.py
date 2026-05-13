@@ -263,6 +263,8 @@ def get_password_hash() -> str | None:
     global _AUTH_HASH_COMPUTED, _AUTH_HASH_CACHE
 
     # Fast path — no lock needed once cache is populated.
+    # Cache is invalidated by _invalidate_password_hash_cache() when the
+    # password is changed via the Settings panel (api/config.py:save_settings).
     if _AUTH_HASH_COMPUTED:
         return _AUTH_HASH_CACHE
 

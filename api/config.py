@@ -4042,12 +4042,17 @@ def save_settings(settings: dict) -> dict:
     raw_pw = settings.pop("_set_password", None)
     if raw_pw and isinstance(raw_pw, str) and raw_pw.strip():
         # Use PBKDF2 from auth module (600k iterations) -- never raw SHA-256
-        from api.auth import _hash_password
+        from api.auth import _hash_password, _invalidate_password_hash_cache
 
         current["password_hash"] = _hash_password(raw_pw.strip())
+        _invalidate_password_hash_cache()
     # Handle _clear_password: explicitly disable auth
-    if settings.pop("_clear_password", False):
+    _clear_pw = settings.pop("_clear_password", False)
+    if _clear_pw:
+        from api.auth import _invalidate_password_hash_cache
+
         current["password_hash"] = None
+        _invalidate_password_hash_cache()
     for k, v in settings.items():
         if k in _SETTINGS_ALLOWED_KEYS:
             if k == "theme":
